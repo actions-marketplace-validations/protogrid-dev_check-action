@@ -1,0 +1,34 @@
+name: self-test
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 6 * * 1"
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 24
+      - run: node --test
+  live:
+    # Checks protogrid's own MCP server through this action, as a user's workflow would.
+    needs: unit
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - id: check
+        uses: ./
+        with:
+          url: https://api.protogrid.dev/mcp
+          api-key: ${{ secrets.PROTOGRID_API_KEY }}
+          min-score: 90
+          directories: claude, openai
+      - run: echo "score ${{ steps.check.outputs.score }} (${{ steps.check.outputs.label }}), ${{ steps.check.outputs.page }}"

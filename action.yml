@@ -1,0 +1,49 @@
+name: protogrid MCP server check
+description: Check a remote MCP server in CI - protocol, OAuth metadata, tool hygiene and Claude and OpenAI directory readiness.
+author: protogrid
+branding:
+  icon: check-circle
+  color: blue
+inputs:
+  url:
+    description: Public URL of the remote MCP server, for example https://mcp.example.com/mcp. Private and local addresses cannot be checked.
+    required: true
+  api-key:
+    description: A protogrid API key (free at https://protogrid.dev/account), stored as a secret. Checks count against the key's account.
+    required: true
+  min-score:
+    description: Fail when the quality score (0 to 100) is under this. A server that cannot be scored fails it too. Empty means no score gate.
+    required: false
+    default: ""
+  directories:
+    description: Fail on blockers of these directories, comma-separated - claude, openai. Empty means readiness is reported, never gated.
+    required: false
+    default: ""
+  timeout-seconds:
+    description: How long to wait for the result (10 to 600).
+    required: false
+    default: "120"
+  base-url:
+    description: protogrid API address. Leave the default.
+    required: false
+    default: https://api.protogrid.dev
+outputs:
+  check-id:
+    description: Id of the check.
+  page:
+    description: Shareable result page on protogrid.dev (kept 30 days).
+  outcome:
+    description: Probe outcome (ok, auth_required, timeout, unreachable, protocol_error, ...).
+  score:
+    description: Quality score 0 to 100, empty when the server could not be scored.
+  label:
+    description: Quality label (good, needs work, poor, not scored).
+  claude-blockers:
+    description: Blockers for the Claude directory.
+  openai-blockers:
+    description: Blockers for the OpenAI (ChatGPT) directory.
+  passed:
+    description: true when the gate passed.
+runs:
+  using: node24
+  main: index.mjs
